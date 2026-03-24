@@ -8,15 +8,16 @@ import albumentations as A
 # הגדרות גלובליות
 # ==========================================
 SIGN = "flip_180" # היפוך כפול שקול לסיבוב של 180 מעלות
+TURBID = False
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 input_base_dir = os.path.join(script_dir, 'test images')
 output_base_dir = os.path.join(script_dir, 'test images 2')
 
-# ה-Pipeline מפעיל עכשיו את שני ההיפוכים יחד
-transform_v2 = A.Compose([
-    A.VerticalFlip(p=1.0),   # היפוך אנכי
-    A.HorizontalFlip(p=1.0), # היפוך אופקי
+if TURBID:
+    transform_v2 = A.Compose([
+    A.VerticalFlip(p=1.0),
+    A.HorizontalFlip(p=1.0),
     A.RGBShift(r_shift_limit=(20, 40), g_shift_limit=(-20, 20), b_shift_limit=(-40, -10), p=1.0),
     A.HueSaturationValue(hue_shift_limit=0, sat_shift_limit=(-50, -20), val_shift_limit=(-50, -20), p=1.0),
     A.GaussianBlur(blur_limit=(35, 101), p=0.5),
@@ -26,6 +27,10 @@ transform_v2 = A.Compose([
         A.CoarseDropout(num_holes_range=(1, 100), hole_height_range=(0.001, 0.015), hole_width_range=(0.001, 0.015), fill=(100, 90, 70), p=0.95),
     ], p=1.0),
 ])
+else:
+    transform_v2 = A.Compose([
+    A.VerticalFlip(p=1.0),
+    A.HorizontalFlip(p=1.0)])
 
 subdirs = ['train', 'test', 'valid']
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif')
