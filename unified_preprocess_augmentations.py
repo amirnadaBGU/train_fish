@@ -6,8 +6,13 @@ import albumentations as A
 # ==========================================
 # GLOBAL SETTINGS
 # ==========================================
-# Options: "horizontal", "vertical", "180", "none"
+# Options for FLIP_MODE: "horizontal", "vertical", "180", "none"
 FLIP_MODE = "horizontal"
+
+# Options for TASK_TYPE: "segmentation" (polygons) or "detection" (bounding boxes)
+TASK_TYPE = "detection"
+
+# Options for TURBID: True or False
 TURBID = False
 
 # Paths configuration
@@ -34,8 +39,8 @@ def get_transforms(mode, is_turbid):
         aug_list.append(A.VerticalFlip(p=1.0))
         aug_list.append(A.HorizontalFlip(p=1.0))
         sign = "flip_180"
-    else:
-        sign = "no_flip"
+    elif mode == "none":
+        sign = ""
 
     # 2. Add Turbid logic (Weather/Water effects)
     if is_turbid:
@@ -73,9 +78,9 @@ for subdir in subdirs:
         print(f"Skipping {subdir}: 'images' directory not found.")
         continue
 
-    print(f"\n" + "=" * 42)
-    print(f"Processing directory: {subdir} | Mode: {FLIP_MODE} | Turbid: {TURBID}")
-    print("=" * 42)
+    print(f"\n" + "=" * 50)
+    print(f"Processing directory: {subdir} | Mode: {FLIP_MODE} | Task: {TASK_TYPE} | Turbid: {TURBID}")
+    print("=" * 50)
 
     out_images_dir = os.path.join(output_base_dir, subdir, 'images')
     out_labels_dir = os.path.join(output_base_dir, subdir, 'labels')
@@ -108,7 +113,7 @@ for subdir in subdirs:
             print(f"[!] Warning: Could not read image {filename}")
             continue
 
-        # 2. Process Labels (YOLO format: class x1 y1 x2 y2 ... for polygons)
+        # 2. Process Labels based on Task Type
         txt_filename = f"{name}.txt"
         txt_file_path = os.path.join(in_labels_dir, txt_filename)
 
@@ -126,23 +131,43 @@ for subdir in subdirs:
                 coords = [float(val) for val in parts[1:]]
                 new_coords = []
 
-                for i in range(len(coords)):
-                    val = coords[i]
-                    # Apply mathematical flip based on mode
+                if TASK_TYPE == "segmentation":
+                    # Segmentation logic: Flip pairs of x, y coordinates
+                    for i in range(len(coords)):
+                        val = coords[i]
+                        if FLIP_MODE == "horizontal" and i % 2 == 0:
+                            val = 1.0 - val
+                        elif FLIP_MODE == "vertical" and i % 2 != 0:
+                            val = 1.0 - val
+                        elif FLIP_MODE == "180":
+                            val = 1.0 - val
+
+                        val = max(0.0, min(val, 1.0))
+                        new_coords.append(val)
+
+                elif TASK_TYPE == "detection":
+                    # Object Detection logic: format is [x_center, y_center, width, height]
+                    if len(coords) != 4:
+                        print(f"[!] Warning: Invalid detection format in {txt_filename}. Skipping line.")
+                        continue
+
+                    x_c, y_c, w, h = coords
+
                     if FLIP_MODE == "horizontal":
-                        if i % 2 == 0:  # X coordinate
-                            val = 1.0 - val
+                        x_c = 1.0 - x_c
                     elif FLIP_MODE == "vertical":
-                        if i % 2 != 0:  # Y coordinate
-                            val = 1.0 - val
+                        y_c = 1.0 - y_c
                     elif FLIP_MODE == "180":
-                        # Both X and Y are flipped
-                        val = 1.0 - val
+                        x_c = 1.0 - x_c
+                        y_c = 1.0 - y_c
 
-                    # Boundary check
-                    val = max(0.0, min(val, 1.0))
-                    new_coords.append(val)
+                    # Bounds check only for centers (width and height remain the same)
+                    x_c = max(0.0, min(x_c, 1.0))
+                    y_c = max(0.0, min(y_c, 1.0))
 
+                    new_coords = [x_c, y_c, w, h]
+
+                # Reconstruct the line
                 coords_str = " ".join([f"{v:.6f}" for v in new_coords])
                 new_lines.append(f"{class_id} {coords_str}\n")
 
@@ -152,6 +177,6 @@ for subdir in subdirs:
         else:
             print(f"[!] Note: No label file (txt) found for {filename}")
 
-print("\n" + "=" * 42)
-print(f"Done! Processed {images_processed} images and updated {labels_updated} label files.")
+print("\n" + "=" * 50)
+print(f"Done! Processed {images_processed} images and updated {labels_updated} YOLO {TASK_TYPE} label files.")
 print(f"Final Sign suffix used: {SIGN}")
