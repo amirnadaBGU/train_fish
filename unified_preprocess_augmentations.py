@@ -7,7 +7,7 @@ import albumentations as A
 # GLOBAL SETTINGS
 # ==========================================
 # Options for FLIP_MODE: "horizontal", "vertical", "180", "none"
-FLIP_MODE = "horizontal"
+FLIP_MODE = "none"
 
 # Options for TASK_TYPE: "segmentation" (polygons) or "detection" (bounding boxes)
 TASK_TYPE = "detection"
@@ -141,9 +141,9 @@ for subdir in subdirs:
                             val = 1.0 - val
                         elif FLIP_MODE == "180":
                             val = 1.0 - val
-
-                        val = max(0.0, min(val, 1.0))
-                        new_coords.append(val)
+                        if FLIP_MODE != "none":
+                            val = max(0.0, min(val, 1.0))
+                            new_coords.append(val)
 
                 elif TASK_TYPE == "detection":
                     # Object Detection logic: format is [x_center, y_center, width, height]
@@ -162,14 +162,16 @@ for subdir in subdirs:
                         y_c = 1.0 - y_c
 
                     # Bounds check only for centers (width and height remain the same)
-                    x_c = max(0.0, min(x_c, 1.0))
-                    y_c = max(0.0, min(y_c, 1.0))
+                    if FLIP_MODE != "none":
+                        x_c = max(0.0, min(x_c, 1.0))
+                        y_c = max(0.0, min(y_c, 1.0))
 
-                    new_coords = [x_c, y_c, w, h]
+                        new_coords = [x_c, y_c, w, h]
 
                 # Reconstruct the line
-                coords_str = " ".join([f"{v:.6f}" for v in new_coords])
-                new_lines.append(f"{class_id} {coords_str}\n")
+                if FLIP_MODE != "none":
+                    coords_str = " ".join([f"{v:.6f}" for v in new_coords])
+                    new_lines.append(f"{class_id} {coords_str}\n")
 
             with open(output_txt_path, 'w') as file:
                 file.writelines(new_lines)
