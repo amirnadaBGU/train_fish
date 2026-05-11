@@ -2,7 +2,7 @@
 from pathlib import Path
 
 # Global variable for the directory name
-name = "video_2/train"
+name = "video_5/train"
 
 def rename_labels_for_images(root_dir: Path):
     images_dir = root_dir / "images"
