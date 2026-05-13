@@ -1,6 +1,7 @@
 # python
 from pathlib import Path
 
+# Helper Script to make sure images files and label file have the same name
 # Global variable for the directory name
 name = "video_5/train"
 
