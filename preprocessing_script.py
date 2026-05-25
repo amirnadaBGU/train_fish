@@ -5,8 +5,8 @@ import shutil
 
 # --- הגדרות נתיבים ---
 script_dir = os.path.dirname(os.path.abspath(__file__))
-input_base_dir = os.path.join(script_dir, 'test images')
-output_base_dir = os.path.join(script_dir, 'test images 2')
+input_base_dir = os.path.join(script_dir, 'original image no resize and fixed bouning boxes all detection')
+output_base_dir = os.path.join(script_dir, 'original image no resize and fixed bouning boxes all detection 2')
 
 subdirs = ['train', 'test', 'valid']
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.tif')

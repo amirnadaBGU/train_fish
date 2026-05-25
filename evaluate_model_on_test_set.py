@@ -5,11 +5,12 @@ from ultralytics import YOLO
 # ===================================================================================
 
 # 1. Basic Paths
-MODEL_PATH = "white_edges.pt"  # Path to your trained model weights (e.g., best.pt)
-DATA_YAML = "dataset/data.yaml"  # Path to your dataset configuration file
+MODEL_PATH = "version6.pt"  # Path to your trained model weights (e.g., best.pt)
+datasets_dir = "C:/Users/ndvam/PycharmProjects/train_yolo_for_fish_detection/datasets"
+DATA_YAML = f"{datasets_dir}/preprocess/stretched/data.yaml"
 
 # 2. Model Behavior Parameters (Your "Tuning Knobs")
-NMS_IOU = 0.95  # Non-Maximum Suppression IoU threshold.
+NMS_IOU = 0.7  # Non-Maximum Suppression IoU threshold.
 # 0.7 = Permissive (allows overlap), 0.4 = Strict (removes overlaps).
 MAX_DET = 1000  # Maximum detections per image. *CRITICAL FOR FISH POOLS!*
 # Default is 300. If a pool has >300 fish, you must increase this,
@@ -42,8 +43,7 @@ def evaluate_and_plot():
     # Run validation with explicit parameters
     results = model.val(
         data=DATA_YAML,
-        split ='test',
-        project='C:/Users/amirnada/PycharmProjects/train_fish/runs',
+        split ='val',
         name='fish_evaluation',
         iou=NMS_IOU,
         max_det=MAX_DET,

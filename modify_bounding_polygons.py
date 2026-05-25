@@ -86,5 +86,5 @@ def convert_segmentation_to_detection(library_dir: str):
 
 
 if __name__ == "__main__":
-    library_name = "videos/test"  # Change this to your library path
+    library_name = "full_dataset/test"  # Change this to your library path
     convert_segmentation_to_detection(library_name)
