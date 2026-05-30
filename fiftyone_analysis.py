@@ -9,7 +9,7 @@ import os
 # ---------------------------------------------------------
 fo.config.database_validation = False
 
-model = YOLO("version6.pt")
+model = YOLO("version6_25.pt")
 classes = model.names
 
 images_dir = os.path.abspath("dataset/valid/images")
@@ -60,7 +60,7 @@ for sample in dataset:
 # ---------------------------------------------------------
 # 3. Run Inference
 # ---------------------------------------------------------
-conf_thresholds = [0.05]
+conf_thresholds = [0.3]
 fixed_nms = 0.45
 
 print("\nStarting inference for different confidence thresholds...")
@@ -95,16 +95,26 @@ for conf in conf_thresholds:
             eval_key=f"eval_ALL_{pred_field}"
         )
 
-        # ב. הערכה מדויקת רק ל-FISH
-        dataset.evaluate_detections(
+        # ב. הערכה מדויקת רק ל-FISH — מסנן גם predictions וגם GT לפני החישוב
+        fish_view = (
+            dataset
+            .filter_labels("ground_truth", F("label") == "fish")
+            .filter_labels(pred_field, F("label") == "fish")
+        )
+        fish_view.evaluate_detections(
             pred_field=pred_field, gt_field="ground_truth",
-            eval_key=f"eval_FISH_{pred_field}", classes=["fish"]
+            eval_key=f"eval_FISH_{pred_field}"
         )
 
-        # ג. הערכה מדויקת רק ל-PARTIAL FISH
-        dataset.evaluate_detections(
+        # ג. הערכה מדויקת רק ל-PARTIAL FISH — מסנן גם predictions וגם GT לפני החישוב
+        partial_view = (
+            dataset
+            .filter_labels("ground_truth", F("label") == "partial fish")
+            .filter_labels(pred_field, F("label") == "partial fish")
+        )
+        partial_view.evaluate_detections(
             pred_field=pred_field, gt_field="ground_truth",
-            eval_key=f"eval_PARTIAL_{pred_field}", classes=["partial fish"]
+            eval_key=f"eval_PARTIAL_{pred_field}"
         )
 
 # ---------------------------------------------------------
@@ -129,18 +139,19 @@ for category in categories:
 # ---------------------------------------------------------
 print("\nConfiguring UI and Launching FiftyOne App...")
 
-# בחירת הטרשהולד והמחלקה שיוצגו כברירת מחדל בתחתית התמונות
 chosen_conf = "0_05"  # ניתן לשנות ל- "0_3", "0_15" וכו'
-target_eval = "eval_FISH"  # ניתן לשנות ל- "eval_PARTIAL" או "eval_ALL"
 
-# פקודה שמגדירה מראש את הממשק כך שיציג אך ורק את השדות שבחרנו
+# הצגת TP/FP/FN בנפרד לכל מחלקה (fish ו-partial fish)
 dataset.app_config.grid_fields = [
     "id",
     "filepath",
     "tags",
-    f"{target_eval}_conf_{chosen_conf}_tp",
-    f"{target_eval}_conf_{chosen_conf}_fp",
-    f"{target_eval}_conf_{chosen_conf}_fn"
+    f"eval_FISH_conf_{chosen_conf}_tp",
+    f"eval_FISH_conf_{chosen_conf}_fp",
+    f"eval_FISH_conf_{chosen_conf}_fn",
+    f"eval_PARTIAL_conf_{chosen_conf}_tp",
+    f"eval_PARTIAL_conf_{chosen_conf}_fp",
+    f"eval_PARTIAL_conf_{chosen_conf}_fn",
 ]
 dataset.save()
 

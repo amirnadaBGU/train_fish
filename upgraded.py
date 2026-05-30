@@ -5,9 +5,9 @@ from ultralytics import YOLO
 # ===================================================================================
 
 # 1. Basic Paths
-MODEL_PATH = "version6.pt"  # Path to your trained model weights (e.g., best.pt)
+MODEL_PATH = "version6.pt"
 datasets_dir = "C:/Users/ndvam/PycharmProjects/train_yolo_for_fish_detection/datasets"
-DATA_YAML = f"{datasets_dir}/no_preprocess/stretched/data.yaml"
+DATA_YAML = f"{datasets_dir}/preprocess/sub_models/stretched12/data.yaml"
 
 # 2. Specific Target Parameters
 TARGET_CONF = 0.001

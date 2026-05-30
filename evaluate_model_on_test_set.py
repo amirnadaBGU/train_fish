@@ -5,9 +5,10 @@ from ultralytics import YOLO
 # ===================================================================================
 
 # 1. Basic Paths
-MODEL_PATH = "version6.pt"  # Path to your trained model weights (e.g., best.pt)
+MODEL_PATH = "version6_25_2.pt"
 datasets_dir = "C:/Users/ndvam/PycharmProjects/train_yolo_for_fish_detection/datasets"
-DATA_YAML = f"{datasets_dir}/preprocess/stretched/data.yaml"
+#DATA_YAML = f"{datasets_dir}/preprocess/sub_models/stretched15/data.yaml"
+DATA_YAML = f"{datasets_dir}/preprocess//stretched/data.yaml"
 
 # 2. Model Behavior Parameters (Your "Tuning Knobs")
 NMS_IOU = 0.7  # Non-Maximum Suppression IoU threshold.
